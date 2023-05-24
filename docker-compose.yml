@@ -1,6 +1,43 @@
+version: '3.9'
 services:
   app:
+    depends_on:
+      - db
     build: 
       context: .
+      dockerfile: Dockerfile
+    image: django-app:v1
     volumes:
       - ./app:/app
+    environment:
+      - ALLOWED_HOSTS=https://django-post.0baesholar6d2.us-east-1.cs.amazonlightsail.com
+      - DJANGO_SECRET_KEY=@*yv3^u*x2+ml622#xd+od2-l+yc_234-f*i3i+ezao-lxibj$
+      - DEBUG=0
+      - DB_HOST=ls-81f111b6fbe8e8aca92aa2da8e05c8859285559b.cv6gvzlzcame.us-east-1.rds.amazonaws.com
+      - DB_USER=dbmasteruser
+      - DB_PASSWORD=wl5il$msZ^0x*,Iw8;w-[vcwb(r]cNaD
+      - DB_PORT=5432
+    ports:
+      - 8000:8000
+    command: sh -c "chmod +x /app/config/migrate.sh && sh /app/config/migrate.sh && /app/config/entrypoint.sh"
+  db:
+    image: postgres:13.11-alpine3.17
+    restart: always
+    command: -p 5432
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgres/data/
+    environment:
+      - POSTGRES_HOST=ls-81f111b6fbe8e8aca92aa2da8e05c8859285559b.cv6gvzlzcame.us-east-1.rds.amazonaws.com
+      - POSTGRES_USER=dbmasteruser
+      - POSTGRES_PASSWORD=wl5il$msZ^0x*,Iw8;w-[vcwb(r]cNaD
+      - POSTGRES_PORT=5432
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "django_db", "U", "devuser"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
